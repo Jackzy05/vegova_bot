@@ -20,7 +20,7 @@ async def on_message(message):
 			await commands[command[0]](message)
 		else:
 			embed = discord.Embed(
-				description = f"`{command[0]}` ni veljavna komanda. Uporabite `ea/help` za celoten seznam komand", 
+				description = f"`{command[0]}` ni veljavna komanda. Uporabite `veg/help` za celoten seznam komand", 
 				color = 0xFF0000)
 			embed.set_author(
 				name = "Napaka", 
@@ -32,7 +32,7 @@ commands = {
 	"urnik": table,
 	"ucilnica": ucilnica,
 	"vfinder": vfinder,
-	# "help": help
+	"help": help
 }
 
 client.run(token)

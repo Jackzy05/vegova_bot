@@ -1,10 +1,14 @@
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.support.ui import Select
 from requests import get
 from pandas import read_html
 import datetime
 
 # Naredi globalno spremenljivko urnik v kateri je shranjen pandas dataframe
 def get_html(razred):	
+	global global_razred
+	global_razred = razred
 	dataframe = read_html(f"https://www.easistent.com/urniki/30a1b45414856e5598f2d137a5965d5a4ad36826/razredi/{razredi[razred]}")
 	global urnik
 	urnik = dataframe[6]
@@ -27,7 +31,7 @@ def get_date(dan):
 	
 # Vrne urnik dataframe
 def get_table(dan):	
-	dnevi = ["Ponedeljek", "Torek", "Sreda","Četrtek", "Petek"]
+	dnevi = ["Ponedeljek", "Torek", "Sreda", "Četrtek", "Petek"]
 	dan_index = datetime.datetime.today().weekday()
 	
 	match dan:
@@ -38,7 +42,16 @@ def get_table(dan):
 				return False
 		case "jutri":
 			if dan_index + 1 not in [5, 6]:
+				# Če je nedelja pol rab dobit podatke za naslednji teden zato uporab selenium magic
 				if dan_index + 1 == 7:
+					driver = webdriver.get(f"https://www.easistent.com/urniki/30a1b45414856e5598f2d137a5965d5a4ad36826/razredi/{razredi[global_razred]}")
+					select = Select(driver.find_element_by_class('ednevnik-seznam_ur_teden-navigacija-teden'))
+					
+					soup = BeautifulSoup(driver.page_source, "html.parser")
+					curr_option = soup.find("option", {"selected" : "selected"})
+					select.select_by_value(curr_option.next_sibling['value'])
+					driver.close()
+					
 					ime_dneva = dnevi[0]
 				else:	
 					ime_dneva = dnevi[dan_index + 1]
@@ -50,7 +63,6 @@ def get_table(dan):
 			else:
 				return False
 	
-	print(ime_dneva)
 	return urnik[f"{ime_dneva}  {get_date(dan)}"]
 
 # Vrne tuple, ki ima v prvem elementu string predmetov, ur in ucilnic; v drugem pa ure za posamezen predmet
